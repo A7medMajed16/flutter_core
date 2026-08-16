@@ -31,17 +31,18 @@
 //     final maxFileSize = maxFileSizeInMB ?? _defaultMaxFileSizeInMB;
 
 //     try {
-//       final pickedFiles = await FilePicker.pickFiles(
+//       final pickedFile = await FilePicker.pickFile(
 //         type: allowedExtensions == null ? FileType.any : FileType.custom,
 //         allowedExtensions: allowedExtensions,
 //       );
-//       if (pickedFiles == null) return const Right(null);
 
-//       final pickedFile = pickedFiles.files.single;
+//       if (pickedFile == null) return const Right(null);
+
 //       final pickedFilePath = pickedFile.path;
 //       if (pickedFilePath == null) return const Right(null);
 
-//       if (pickedFile.size > _megabytesToBytes(maxFileSize)) {
+//       final pickedFileSize = await pickedFile.length();
+//       if (pickedFileSize > _megabytesToBytes(maxFileSize)) {
 //         return Left(
 //           'custom_widget.max_file_size_exceeded'.tr(
 //             args: [maxFileSize.toString()],
@@ -192,7 +193,7 @@
 //       if (!kIsWeb && Platform.isWindows) return File(pickedImage.path);
 //       if (context != null && !context.mounted) return null;
 
-//       return _cropImage(
+//       return await _cropImage(
 //         sourcePath: pickedImage.path,
 //         configuration: configuration,
 //         context: context,
