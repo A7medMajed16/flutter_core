@@ -1,29 +1,71 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:hijri/hijri_calendar.dart' show HijriCalendar;
 import 'package:ntp/ntp.dart';
-import '../../cache/storage/cache_helper.dart' show SP;
+
+import '../../cache/cache_helper.dart' show SP;
 
 class DateTimeHelper {
+  static int _ntpOffsetMs = 0;
+  static bool _ntpSynced = false;
+  static const List<String> _arabicWeekdays = [
+    'الاثنين',
+    'الثلاثاء',
+    'الأربعاء',
+    'الخميس',
+    'الجمعة',
+    'السبت',
+    'الأحد',
+  ];
+  static const List<String> _englishWeekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
   //!======================GET NOW======================
-  static Future<DateTime> get now async => await NTP.now();
+
+  static Future<DateTime> get now async => nowSync;
+
+  /// Call once at startup. Safe to call again to refresh.
+  static Future<void> syncNtpOffset() async {
+    try {
+      _ntpOffsetMs = await NTP.getNtpOffset(
+        timeout: const Duration(seconds: 5),
+      );
+      _ntpSynced = true;
+    } catch (_) {
+      // Keep last known offset / device time on failure.
+    }
+  }
+
+  /// Synchronous network-corrected now (falls back to device time
+  /// until the first successful sync).
+  static DateTime get nowSync =>
+      DateTime.now().add(Duration(milliseconds: _ntpOffsetMs));
+
+  static bool get isNtpSynced => _ntpSynced;
+
+  /// Parses an API/ISO timestamp and returns local wall time for display.
+  /// Use [nowSync] (not [DateTime.now]) when comparing to "now".
+  static DateTime parseToLocal(String date) =>
+      toLocalDateTime(DateTime.parse(date));
+
+  /// Converts an instant to local time (UTC first so naive UTC strings behave).
+  static DateTime toLocalDateTime(DateTime dateTime) =>
+      dateTime.toUtc().toLocal();
 
   //!======================FORMAT DATE TIME LOCALIZED====
   static String formatFullDateTimeLocalized(
     String date, {
     bool withTime = true,
   }) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
+    final DateTime dateTime = parseToLocal(date);
     final contextLocale = SP.getAppLang();
 
-    // Weekday and month names
-    final List<String> arabicWeekdays = [
-      'الاثنين',
-      'الثلاثاء',
-      'الأربعاء',
-      'الخميس',
-      'الجمعة',
-      'السبت',
-      'الأحد',
-    ];
     final List<String> arabicMonths = [
       'يناير',
       'فبراير',
@@ -39,15 +81,6 @@ class DateTimeHelper {
       'ديسمبر',
     ];
 
-    final List<String> englishWeekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
     final List<String> englishMonths = [
       'January',
       'February',
@@ -63,15 +96,10 @@ class DateTimeHelper {
       'December',
     ];
 
-    String weekday;
-    String month;
-    if (contextLocale == 'ar') {
-      weekday = arabicWeekdays[dateTime.weekday - 1];
-      month = arabicMonths[dateTime.month - 1];
-    } else {
-      weekday = englishWeekdays[dateTime.weekday - 1];
-      month = englishMonths[dateTime.month - 1];
-    }
+    final weekday = formatWeekdayLocalized(dateTime);
+    final month = contextLocale == 'ar'
+        ? arabicMonths[dateTime.month - 1]
+        : englishMonths[dateTime.month - 1];
 
     final day = dateTime.day;
     final year = dateTime.year;
@@ -86,9 +114,9 @@ class DateTimeHelper {
       timePeriod = isAm ? 'AM' : 'PM';
     }
     final bool isToday =
-        dateTime.year == DateTime.now().year &&
-        dateTime.month == DateTime.now().month &&
-        dateTime.day == DateTime.now().day;
+        dateTime.year == nowSync.year &&
+        dateTime.month == nowSync.month &&
+        dateTime.day == nowSync.day;
     final String time = '$hour:$minute $timePeriod';
     final String dateString = isToday
         ? contextLocale == 'ar'
@@ -105,10 +133,80 @@ class DateTimeHelper {
     }
   }
 
+  //!======================FORMAT WEEKDAY LOCALIZED======================
+  static String formatWeekdayLocalized(DateTime dateTime) {
+    final localDate = toLocalDateTime(dateTime);
+    final weekdays = SP.getAppLang().startsWith('ar')
+        ? _arabicWeekdays
+        : _englishWeekdays;
+    return weekdays[localDate.weekday - 1];
+  }
+
+  //!======================LOCALIZE ARABIC COUNTS======================
+  static String localizeCount(
+    int count, {
+    required String singularKey,
+    required String dualKey,
+    required String pluralKey,
+  }) {
+    if (count <= 0) return '';
+    final isAr = SP.getAppLang().startsWith('ar');
+
+    if (count == 1) {
+      return isAr ? singularKey.tr() : '1 ${singularKey.tr()}';
+    }
+
+    if (isAr) {
+      if (count == 2) {
+        return dualKey.tr();
+      } else if (count >= 3 && count <= 10) {
+        return '$count ${pluralKey.tr()}';
+      } else {
+        return '$count ${singularKey.tr()}';
+      }
+    } else {
+      return '$count ${pluralKey.tr()}';
+    }
+  }
+
+  //!======================FORMAT DURATION IN MONTHS======================
+  static String formatDurationInMonths(int totalMonths) {
+    if (totalMonths <= 0) return '';
+
+    final int years = totalMonths ~/ 12;
+    final int remainingMonths = totalMonths % 12;
+
+    final List<String> parts = [];
+    if (years > 0) {
+      parts.add(
+        localizeCount(
+          years,
+          singularKey: 'date_time.year',
+          dualKey: 'date_time.two_years',
+          pluralKey: 'date_time.years',
+        ),
+      );
+    }
+
+    if (remainingMonths > 0) {
+      parts.add(
+        localizeCount(
+          remainingMonths,
+          singularKey: 'date_time.month',
+          dualKey: 'date_time.two_months',
+          pluralKey: 'date_time.months',
+        ),
+      );
+    }
+
+    final isAr = SP.getAppLang().startsWith('ar');
+    return parts.join(isAr ? ' و ' : ' and ');
+  }
+
   //!======================TIME AGO FROM NOW======================
   static String timeAgoFromNow(String date) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
-    final DateTime now = DateTime.now();
+    final DateTime dateTime = parseToLocal(date);
+    final DateTime now = nowSync;
     Duration diff = now.difference(dateTime);
     if (diff.isNegative) diff = Duration.zero;
 
@@ -143,7 +241,7 @@ class DateTimeHelper {
 
   //!======================REFORMAT DATE TIME======================
   static String reformatDateTime(String date) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
+    final DateTime dateTime = parseToLocal(date);
     final int hour = dateTime.hour > 12
         ? dateTime.hour - 12
         : dateTime.hour == 0
@@ -159,16 +257,20 @@ class DateTimeHelper {
 
   //!======================REFORMAT DATE======================
   static String reformatDate(String date) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
+    final DateTime dateTime = parseToLocal(date);
 
     return dateTime.toString().split(' ')[0].split('-').reversed.join('/');
   }
 
   //!======================REFORMAT DATE LOCALIZED======================
-  static String reformatDateLocalized(String date, {String? locale}) {
+  static String reformatDateLocalized(
+    String date, {
+    String? locale,
+    bool withYear = true,
+  }) {
     try {
-      final DateTime dateTime = DateTime.parse(date).toLocal();
-      final contextLocale = SP.getAppLang();
+      final DateTime dateTime = parseToLocal(date);
+      final contextLocale = locale ?? SP.getAppLang();
       final day = dateTime.day;
       final year = dateTime.year;
 
@@ -204,10 +306,10 @@ class DateTimeHelper {
 
       if (contextLocale.startsWith('ar')) {
         final month = arabicMonths[dateTime.month - 1];
-        return '$day $month $year';
+        return withYear ? '$day $month $year' : '$day $month';
       } else {
         final month = englishShortMonths[dateTime.month - 1];
-        return '$day $month $year';
+        return withYear ? '$day $month $year' : '$day $month';
       }
     } catch (_) {
       // Fallback to a simple yyyy-mm-dd -> dd/mm/yyyy format if parsing fails
@@ -221,6 +323,35 @@ class DateTimeHelper {
     }
   }
 
+  //!======================FORMAT DATE WITH TIME RANGE LOCALIZED=========
+  /// Example: الأحد 12 يوليو [ 2:00ص : 3:15ص ]
+  static String formatDateWithTimeRangeLocalized(
+    DateTime dateTime,
+    Duration duration,
+  ) {
+    final DateTime start = toLocalDateTime(dateTime);
+    final DateTime end = start.add(duration);
+    final weekday = formatWeekdayLocalized(start);
+    final datePart = reformatDateLocalized(
+      start.toIso8601String(),
+      withYear: false,
+    );
+    final startTime = _formatTimeRangePart(start);
+    final endTime = _formatTimeRangePart(end);
+
+    return '$weekday $datePart [ $startTime : $endTime ]';
+  }
+
+  static String _formatTimeRangePart(DateTime dateTime) {
+    final int hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final String minute = dateTime.minute.toString().padLeft(2, '0');
+    final String period = dateTime.hour < 12
+        ? 'date_time.am'.tr()
+        : 'date_time.pm'.tr();
+
+    return '$hour:$minute$period';
+  }
+
   //!======================REFORMAT TIME REMAINING======================
   static String reformatTimeRemaining(
     String date, {
@@ -228,8 +359,8 @@ class DateTimeHelper {
     bool showHours = true,
     bool showMinutes = true,
   }) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
-    final DateTime now = DateTime.now();
+    final DateTime dateTime = parseToLocal(date);
+    final DateTime now = nowSync;
     final Duration difference = dateTime.difference(now);
     int days = difference.inDays;
     int hours = difference.inHours.remainder(24);
@@ -259,7 +390,7 @@ class DateTimeHelper {
   //!======================REFORMAT DAY REMAINING======================
   static String reformatDayRemaining(String endDate) {
     final DateTime end = DateTime.parse(endDate).toLocal();
-    final DateTime now = DateTime.now();
+    final DateTime now = nowSync;
 
     if (now.isAfter(end)) return '';
 
@@ -274,47 +405,87 @@ class DateTimeHelper {
 
   //!======================REFORMAT TIME LOCALIZED======================
   static String reformatTimeLocalized(String date, {String? locale}) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
-    final contextLocale = SP.getAppLang();
+    final DateTime dateTime = parseToLocal(date);
+    final contextLocale = locale ?? SP.getAppLang();
 
-    final int hour12 = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
-    final String minute = dateTime.minute.toString().padLeft(2, '0');
-    final bool isAm = dateTime.hour < 12;
+    return _formatHourMinute12Localized(
+      dateTime.hour,
+      dateTime.minute,
+      contextLocale,
+    );
+  }
+
+  /// Converts a 24-hour clock string (e.g. `14:30` or `14:30:00`) to localized
+  /// 12-hour display. Full ISO timestamps are supported via [parseToLocal].
+  static String formatTime24To12Localized(String time24, {String? locale}) {
+    final trimmed = time24.trim();
+    if (trimmed.isEmpty) return '';
+
+    if (trimmed.contains('T') ||
+        (trimmed.contains('-') && trimmed.contains(':'))) {
+      return reformatTimeLocalized(trimmed, locale: locale);
+    }
+
+    try {
+      final parts = trimmed.split(':');
+      if (parts.length < 2) return trimmed;
+
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        return trimmed;
+      }
+
+      return _formatHourMinute12Localized(
+        hour,
+        minute,
+        locale ?? SP.getAppLang(),
+      );
+    } catch (_) {
+      return trimmed;
+    }
+  }
+
+  static String _formatHourMinute12Localized(
+    int hour24,
+    int minute,
+    String contextLocale,
+  ) {
+    final int hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
+    final String minuteStr = minute.toString().padLeft(2, '0');
+    final bool isAm = hour24 < 12;
 
     final String period = contextLocale.startsWith('ar')
         ? (isAm ? 'ص' : 'م')
         : (isAm ? 'AM' : 'PM');
 
-    return '${hour12.toString().padLeft(2, '0')}:$minute $period';
+    return '${hour12.toString().padLeft(2, '0')}:$minuteStr $period';
   }
 
-  // //!======================FORMAT TO HIJRI AND GREGORIAN======================
-  // static String formatToHijriAndGregorian(
-  //   String date, {
-  //   String locale = 'ar',
-  // }) {
-  //   final DateTime dateTime = DateTime.parse(date).toLocal();
+  //!======================FORMAT TO HIJRI AND GREGORIAN======================
+  static String formatToHijriAndGregorian(String date, {String locale = 'ar'}) {
+    final DateTime dateTime = parseToLocal(date);
 
-  //   HijriCalendar.setLocal(locale);
-  //   final HijriCalendar hijriDate = HijriCalendar.fromDate(dateTime);
+    HijriCalendar.setLocal(locale);
+    final HijriCalendar hijriDate = HijriCalendar.fromDate(dateTime);
 
-  //   final String hijriString =
-  //       '${hijriDate.hDay} ${hijriDate.longMonthName} ${hijriDate.hYear} هـ';
+    final String hijriString =
+        '${hijriDate.hDay} ${hijriDate.longMonthName} ${hijriDate.hYear} هـ';
 
-  //   final String gregorianString = DateFormat(
-  //     'dd MMMM yyyy',
-  //     locale,
-  //   ).format(dateTime);
+    final String gregorianString = DateFormat(
+      'dd MMMM yyyy',
+      locale,
+    ).format(dateTime);
 
-  //   return locale == 'ar'
-  //       ? '$hijriString (الموافق $gregorianString م)'
-  //       : '$hijriString ($gregorianString)';
-  // }
+    return locale == 'ar'
+        ? '$hijriString (الموافق $gregorianString م)'
+        : '$hijriString ($gregorianString)';
+  }
 
   //!======================GET REMAINING DAYS======================
   static String getRemainingDays(String date) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
-    final DateTime now = DateTime.now();
+    final DateTime dateTime = parseToLocal(date);
+    final DateTime now = nowSync;
     final int days = dateTime.difference(now).inDays;
 
     if ([3, 4, 5, 6, 7, 8, 9, 10].contains(days)) {
@@ -330,8 +501,8 @@ class DateTimeHelper {
 
   //!======================GET REMAINING HOURS======================
   static String getRemainingHours(String date) {
-    final DateTime dateTime = DateTime.parse(date).toLocal();
-    final DateTime now = DateTime.now();
+    final DateTime dateTime = parseToLocal(date);
+    final DateTime now = nowSync;
     final int hours = dateTime.difference(now).inHours;
 
     if ([3, 4, 5, 6, 7, 8, 9, 10].contains(hours)) {
