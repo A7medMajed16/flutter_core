@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import '../../../helper/formatters/safe_text_input_formatter.dart';
 
 import 'package:flutter/material.dart';
@@ -247,7 +248,7 @@ class _PassTextFormFieldState extends State<PassTextFormField> {
             return ClipRect(
               child: SizeTransition(
                 sizeFactor: animation,
-                axisAlignment: -1.0,
+                alignment: Alignment(-1.0, 0),
                 child: child,
               ),
             );
@@ -401,7 +402,7 @@ class _PassTextFormFieldState extends State<PassTextFormField> {
         transitionBuilder: (child, animation) => SizeTransition(
           sizeFactor: animation,
           axis: Axis.horizontal,
-          axisAlignment: -1.0,
+          alignment: Alignment(-1.0, 0),
           child: child,
         ),
         child:

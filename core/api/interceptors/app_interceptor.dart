@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../../cache/cache_helper.dart';
-import '../../helper/logger_helper/app_logger.dart';
-import '../../helper/user_helper/user_helper.dart';
+import '../../cache/storage/cache_helper.dart';
+import '../../helper/core/app_logger.dart';
+import '../../helper/formatters/user_helper.dart';
 import '../../utils/constants/app_cache_keys.dart';
 import '../common/end_points.dart';
 import '../common/status_code.dart';

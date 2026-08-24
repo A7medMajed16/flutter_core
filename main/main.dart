@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'app.dart';
 
-import 'core/cache/cache_helper.dart';
+import 'core/cache/storage/cache_helper.dart';
 import 'core/dependency_injection/injectable_config.dart';
-import 'core/helper/bloc_observer.dart';
+import 'core/helper/core/bloc_observer.dart';
+import 'core/helper/formatters/date_time_helper.dart';
 import 'core/localization/app_locals.dart';
-import 'core/routes/url_strategy.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'core/helper/datetime_helper/date_time_helper.dart';
-import 'core/theme/cubit/theme_cubit.dart';
+
+import 'core/routes/web/url_strategy_web.dart';
+import 'core/theme/theme_cubit/theme_cubit.dart';
 
 // Flag to determine if running in local development mode
 const bool runLocal = false;
@@ -45,9 +48,7 @@ void main() async {
   await ScreenUtil.ensureScreenSize();
 
   // Lock the app to portrait orientation only
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // Re-initialize EasyLocalization (duplicate call - may be redundant)
   await EasyLocalization.ensureInitialized();

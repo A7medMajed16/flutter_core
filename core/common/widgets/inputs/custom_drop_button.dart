@@ -1,17 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart' as ez;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
 import '../../../theme/app_widget_theme.dart';
 import '../../../theme/scroll_bar_theme.dart';
-import 'custom_input_border.dart';
-import 'custom_text_field.dart';
+import '../../../utils/constants/app_strings.dart';
+import '../inputs/custom_text_field.dart';
 
-class CustomDropButton<T> extends StatefulWidget {
+class CustomDropButton extends StatefulWidget {
   const CustomDropButton({
     super.key,
     required this.items,
@@ -22,92 +21,73 @@ class CustomDropButton<T> extends StatefulWidget {
     this.withUpdate = true,
     this.headerTextStyle,
     this.spacing = 0,
-    this.radius = 12,
-    this.borderColor = Colors.transparent,
+    this.radius = 8,
+    this.borderColor = AppWidgetTheme.textFieldBorderColor,
     this.height,
     this.enabled = true,
-    this.prefixIcon,
+    this.icon,
     this.recolorIcon = true,
     this.preferLazyModal = false,
     this.enableSearchInModal = false,
     this.searchHint,
     this.isWeb = false,
-    this.prefixIconColor,
-    this.alignment = AlignmentDirectional.topStart,
-    this.title,
-    this.titleStyle,
+    this.downArrowIcon,
+    this.searchIcon,
   });
-  final List<DropdownMenuItem<T>> items;
-  final T? value;
-  final void Function(T? selectedValue)? onChanged;
-  final String? hint, prefixIcon;
-  final String? Function(T? value)? validator;
+  final List<DropdownMenuItem<String>> items;
+  final String? value;
+  final void Function(String? selectedValue)? onChanged;
+  final String? hint, icon;
+  final String? Function(dynamic value)? validator;
   final bool withUpdate, enabled, recolorIcon, isWeb;
   final double? spacing, radius, height;
-  final TextStyle? headerTextStyle, titleStyle;
-  final String? title;
-  final Color? borderColor, prefixIconColor;
+  final TextStyle? headerTextStyle;
+  final Color borderColor;
 
   final bool preferLazyModal;
   final bool enableSearchInModal;
   final String? searchHint;
-  final AlignmentGeometry alignment;
+  final String? downArrowIcon;
+  final String? searchIcon;
 
   @override
-  State<CustomDropButton<T>> createState() =>
-      _CustomDropButtonState<T>();
+  State<CustomDropButton> createState() => _CustomDropButtonState();
 }
 
-class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
-  T? _localValue; // for immediate UI feedback in modal mode
-  bool _enabled = true;
+class _CustomDropButtonState extends State<CustomDropButton> {
+  String? _localValue;
 
   @override
-  void initState() {
-    if (widget.items.isEmpty) {
-      _enabled = false;
-    } else {
-      _enabled = widget.enabled;
-    }
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant CustomDropButton<T> oldWidget) {
+  void didUpdateWidget(covariant CustomDropButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If parent value changes, sync local
     if (widget.value != oldWidget.value) {
       _localValue = widget.value;
     }
   }
 
-  String? _labelForValue(T? v) {
+  String? _labelForValue(String? v) {
     if (v == null) return null;
     for (final item in widget.items) {
       if (item.value == v) {
         final child = item.child;
         if (child is Text) return child.data;
-        // Fallback: not a Text, return value as String
-        return item.value.toString();
       }
     }
-    // Fallback if not found in items
-    return v is String ? v : v.toString();
+    return v;
   }
 
   Future<void> _openModalPicker() async {
-    if (!_enabled) return;
+    if (!widget.enabled) return;
     final selectedBefore = _localValue ?? widget.value;
-    T? result;
+    String? result;
 
     if (widget.isWeb && widget.preferLazyModal) {
-      // Show dialog on web with same UI as bottom sheet
-      result = await showDialog<T>(
+      result = await showDialog<String>(
         context: context,
         barrierDismissible: true,
-
+        barrierColor: AppWidgetTheme.barrierColor,
         builder: (ctx) {
-          List<DropdownMenuItem<T>> filtered = widget.items;
+          List<DropdownMenuItem<String>> filtered = widget.items;
           final controller = TextEditingController();
           return StatefulBuilder(
             builder: (context, setSB) {
@@ -120,16 +100,16 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                 backgroundColor: AppColors.originalWhite,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
+                  side: BorderSide(color: AppWidgetTheme.textFieldBorderColor),
                 ),
                 insetPadding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 24,
                 ),
                 contentPadding: EdgeInsets.zero,
-                content: Container(
+                content: SizedBox(
                   width: dialogWidth,
                   height: dialogHeight,
-                  color: AppColors.originalWhite,
                   child: Column(
                     children: [
                       if (widget.enableSearchInModal)
@@ -140,7 +120,18 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                             hintText:
                                 widget.searchHint ??
                                 "custom_widget.search".tr(),
-                            suffixWidget: Icon(Icons.search),
+                            suffixWidget: widget.searchIcon != null
+                                ? SvgPicture.asset(
+                                    widget.searchIcon!,
+                                    width: 24,
+                                    height: 24,
+                                    fit: BoxFit.scaleDown,
+                                  )
+                                : Icon(
+                                    Icons.search,
+                                    size: 24,
+                                    color: AppWidgetTheme.tileIconColor,
+                                  ),
                             textDirection: TextDirection.ltr,
 
                             onChanged: (q) {
@@ -152,11 +143,9 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                                   if (w is Text) {
                                     text = w.data ?? '';
                                   } else {
-                                    text = e.value?.toString() ?? '';
+                                    text = e.value ?? '';
                                   }
-                                  return text.toLowerCase().contains(
-                                    query,
-                                  );
+                                  return text.toLowerCase().contains(query);
                                 }).toList();
                               });
                             },
@@ -164,38 +153,35 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                         ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: ScrollConfiguration(
                             behavior: NoScrollbarBehavior(),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              primary: false,
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final item = filtered[index];
-                                final isSelected =
-                                    item.value == selectedBefore;
-                                return ListTile(
-                                  title: item.child,
-                                  titleTextStyle: 16.regular.copyWith(
-                                    color: AppColors.originalBlack,
-                                  ),
-                                  titleAlignment:
-                                      ListTileTitleAlignment.center,
-                                  selectedTileColor: AppColors
-                                      .primerColor
-                                      .withValues(alpha: 0.1),
-                                  selected: isSelected,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(8),
-                                  ),
-                                  onTap: () =>
-                                      context.pop(item.value),
-                                );
-                              },
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                primary: false,
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final item = filtered[index];
+                                  final isSelected =
+                                      item.value == selectedBefore;
+                                  return ListTile(
+                                    title: item.child,
+                                    titleAlignment:
+                                        ListTileTitleAlignment.center,
+                                    selectedTileColor:
+                                        AppWidgetTheme.selectedTileColor,
+                                    selected: isSelected,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    onTap: () => context.router.canPop()
+                                        ? context.pop(item.value)
+                                        : null,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -209,19 +195,17 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
         },
       );
     } else {
-      result = await showModalBottomSheet<T>(
+      result = await showModalBottomSheet<String>(
         context: context,
         useSafeArea: true,
         isScrollControlled: true,
         backgroundColor: AppColors.originalWhite,
         elevation: 0,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         builder: (ctx) {
-          List<DropdownMenuItem<T>> filtered = widget.items;
+          List<DropdownMenuItem<String>> filtered = widget.items;
           final controller = TextEditingController();
           return StatefulBuilder(
             builder: (context, setSB) {
@@ -241,8 +225,7 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                             hintText:
                                 widget.searchHint ??
                                 "custom_widget.search".tr(),
-                            // prefixIcon:
-                            //     AppIcons.coreCommonAssetsIconsSearch,
+                            prefixIcon: widget.searchIcon,
                             onChanged: (q) {
                               final query = q!.trim().toLowerCase();
                               setSB(() {
@@ -252,11 +235,9 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                                   if (w is Text) {
                                     text = w.data ?? '';
                                   } else {
-                                    text = e.value?.toString() ?? '';
+                                    text = e.value ?? '';
                                   }
-                                  return text.toLowerCase().contains(
-                                    query,
-                                  );
+                                  return text.toLowerCase().contains(query);
                                 }).toList();
                               });
                             },
@@ -267,9 +248,7 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                           thumbVisibility: true,
                           controller: scrollController,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: ScrollConfiguration(
                               behavior: NoScrollbarBehavior(),
                               child: ListView.builder(
@@ -281,23 +260,17 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
                                       item.value == selectedBefore;
                                   return ListTile(
                                     title: item.child,
-                                    titleTextStyle: 16.regular
-                                        .copyWith(
-                                          color:
-                                              AppColors.originalBlack,
-                                        ),
-                                    selectedTileColor: AppColors
-                                        .primerColor
-                                        .withValues(alpha: 0.1),
+                                    selectedTileColor:
+                                        AppWidgetTheme.selectedTileColor,
                                     selected: isSelected,
                                     titleAlignment:
                                         ListTileTitleAlignment.center,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    onTap: () =>
-                                        context.pop(item.value),
+                                    onTap: () => context.router.canPop()
+                                        ? context.pop(item.value)
+                                        : null,
                                   );
                                 },
                               ),
@@ -316,76 +289,40 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
     }
     setState(() => _localValue = result);
     widget.onChanged?.call(result);
-    if (context.mounted) {
-      // ignore: use_build_context_synchronously
-      FocusScope.of(context).unfocus();
-    }
   }
 
   InputDecoration _decoration() {
     return InputDecoration(
-      prefixIconConstraints: const BoxConstraints(
-        minWidth: 0,
-        minHeight: 0,
-      ),
-      isDense: true,
-      contentPadding: REdgeInsetsDirectional.only(
-        start: 12,
-        end: 12,
-        bottom: 10,
-        top: 10,
-      ),
-      prefixIcon: (widget.prefixIcon != null)
-          ? Padding(
-              padding: const EdgeInsetsDirectional.only(
-                start: 12,
-                end: 8,
-              ),
-              child: SvgPicture.asset(
-                widget.prefixIcon!,
-                width: 20,
-                height: 20,
-                fit: BoxFit.scaleDown,
-                colorFilter: ColorFilter.mode(
-                  _enabled
-                      ? (widget.prefixIconColor ??
-                            AppWidgetTheme.textFieldPrefixIconColor)
-                      : (widget.prefixIconColor ??
-                                AppWidgetTheme
-                                    .textFieldPrefixIconColor)
-                            .withValues(alpha: 0.3),
-                  BlendMode.srcIn,
-                ),
-              ),
-            )
-          : null,
-      fillColor: _enabled
-          ? AppWidgetTheme.textFieldFillColor
+      prefixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+      fillColor: widget.enabled
+          ? AppColors.originalWhite
           : AppWidgetTheme.textFieldDisabledFillColor,
       filled: true,
-      focusColor: Colors.black,
-      errorStyle: 12.regular.copyWith(
+      focusColor: AppColors.originalWhite,
+      errorStyle: TextStyle(
+        fontFamily: AppStrings.arabicFontFamily,
         color: AppWidgetTheme.textFieldErrorTextColor,
+        fontSize: 12,
       ),
-      hoverColor: AppWidgetTheme.textFieldHoverColor,
+      hoverColor: widget.enabled
+          ? AppWidgetTheme.tileHoverColor
+          : Colors.transparent,
       errorMaxLines: 4,
-      errorBorder: customOutLineBorders(
-        borderColor: AppColors.originalRed,
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.radius!),
+        borderSide: BorderSide(color: AppColors.originalRed, width: 0.5),
       ),
-      enabledBorder: customOutLineBorders(
-        borderRadius: widget.radius,
-        borderColor: widget.borderColor != Colors.transparent
-            ? widget.borderColor
-            : null,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.radius!),
+        borderSide: BorderSide(color: widget.borderColor, width: 0.5),
       ),
-      border: customOutLineBorders(borderRadius: widget.radius),
-      focusedBorder: customOutLineBorders(
-        borderRadius: widget.radius,
-        borderColor: AppColors.primerColor,
-        borderWidth: 1.5,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.radius!),
+        borderSide: BorderSide(color: widget.borderColor, width: 0.5),
       ),
-      disabledBorder: customOutLineBorders(
-        borderRadius: widget.radius,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.radius!),
+        borderSide: const BorderSide(color: AppColors.primerColor, width: 1.5),
       ),
     );
   }
@@ -395,119 +332,142 @@ class _CustomDropButtonState<T> extends State<CustomDropButton<T>> {
     final currentValue = _localValue ?? widget.value;
     final selectedLabel = _labelForValue(currentValue);
 
-    Widget child;
     if (!widget.preferLazyModal) {
-      // Original dropdown path
-      child = SizedBox(
+      return SizedBox(
         height: widget.height,
-        child: DropdownButtonFormField<T>(
+        child: DropdownButtonFormField(
           items: widget.items,
           key: widget.withUpdate ? null : UniqueKey(),
           initialValue: widget.value,
           menuMaxHeight: 240,
-          onChanged: _enabled
-              ? (value) {
-                  widget.onChanged?.call(value);
-                  FocusScope.of(context).unfocus();
-                }
-              : null,
+          onChanged: widget.enabled ? widget.onChanged : null,
           isExpanded: true,
           autofocus: false,
           validator: widget.validator,
-          alignment: widget.alignment,
+          alignment: AlignmentDirectional.topStart,
           hint: Text(
             widget.hint ?? "",
             style: 14.light.copyWith(
-              color: _enabled
+              color: widget.enabled
                   ? AppWidgetTheme.textFieldHintColor
                   : AppWidgetTheme.textFieldDisabledHintColor,
             ),
           ),
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 24,
-            color: _enabled ? AppColors.gray99 : AppColors.grayB6,
-          ),
+
+          icon: widget.downArrowIcon != null
+              ? SvgPicture.asset(
+                  widget.downArrowIcon!,
+                  colorFilter: ColorFilter.mode(
+                    widget.enabled
+                        ? AppWidgetTheme.tileIconColor
+                        : AppWidgetTheme.textFieldDisabledHintColor,
+                    BlendMode.srcIn,
+                  ),
+                  fit: BoxFit.scaleDown,
+                )
+              : Icon(
+                  Icons.keyboard_arrow_down,
+                  color: widget.enabled
+                      ? AppWidgetTheme.tileIconColor
+                      : AppWidgetTheme.textFieldDisabledHintColor,
+                ),
           decoration: _decoration(),
           elevation: 9,
           borderRadius: BorderRadius.circular(widget.radius!),
-          dropdownColor: AppWidgetTheme.textFieldFillColor,
+          dropdownColor: AppColors.originalWhite,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: 16.regular.copyWith(color: AppColors.originalBlack),
+
+          style: TextStyle(
+            fontFamily: AppStrings.arabicFontFamily,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+            color: AppWidgetTheme.textFieldHintColor,
+            height: 1.6,
+          ),
         ),
-      );
-    } else {
-      // Lazy modal path for large datasets
-      child = FormField<T>(
-        validator: widget.validator,
-        initialValue: currentValue,
-        builder: (state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              InkWell(
-                onTap: _enabled ? _openModalPicker : null,
-                child: InputDecorator(
-                  isEmpty:
-                      (selectedLabel == null ||
-                      selectedLabel.isEmpty),
-                  decoration: _decoration().copyWith(
-                    errorText: state.hasError
-                        ? state.errorText
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedLabel ?? (widget.hint ?? ''),
-                          style:
-                              (selectedLabel == null ||
-                                  selectedLabel.isEmpty)
-                              ? 14.light.copyWith(
-                                  color: AppWidgetTheme
-                                      .textFieldHintColor,
-                                )
-                              : 16.regular,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 24,
-                        color: _enabled
-                            ? AppColors.gray99
-                            : AppColors.grayB6,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 6,
-      children: [
-        if (widget.title != null && widget.title!.isNotEmpty)
-          Text(
-            widget.title ?? "",
-            style:
-                widget.titleStyle ??
-                14.light.copyWith(
-                  color: AppWidgetTheme.textFieldTitleColor,
+    return FormField<String>(
+      validator: widget.validator,
+      initialValue: currentValue,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: widget.enabled ? _openModalPicker : null,
+              child: InputDecorator(
+                isEmpty: (selectedLabel == null || selectedLabel.isEmpty),
+                decoration: _decoration(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.icon != null)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8.0),
+                        child: SvgPicture.asset(
+                          widget.icon!,
+                          width: 20,
+                          height: 20,
+                          fit: BoxFit.scaleDown,
+                          colorFilter: widget.recolorIcon
+                              ? const ColorFilter.mode(
+                                  AppWidgetTheme.tileIconColor,
+                                  BlendMode.srcIn,
+                                )
+                              : null,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        selectedLabel ?? (widget.hint ?? ''),
+                        style: 14.light.copyWith(
+                          color: widget.enabled
+                              ? AppWidgetTheme.textFieldHintColor
+                              : AppWidgetTheme.textFieldDisabledHintColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    widget.downArrowIcon != null
+                        ? SvgPicture.asset(
+                            widget.downArrowIcon!,
+                            colorFilter: ColorFilter.mode(
+                              widget.enabled
+                                  ? AppWidgetTheme.tileIconColor
+                                  : AppWidgetTheme.textFieldDisabledHintColor,
+                              BlendMode.srcIn,
+                            ),
+                            fit: BoxFit.scaleDown,
+                          )
+                        : Icon(
+                            Icons.keyboard_arrow_down,
+                            color: widget.enabled
+                                ? AppWidgetTheme.tileIconColor
+                                : AppWidgetTheme.textFieldDisabledHintColor,
+                          ),
+                  ],
                 ),
-          ),
-        child,
-      ],
+              ),
+            ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 12, top: 4),
+                child: Text(
+                  state.errorText!,
+                  style: TextStyle(
+                    fontFamily: AppStrings.arabicFontFamily,
+                    color: AppWidgetTheme.textFieldErrorTextColor,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

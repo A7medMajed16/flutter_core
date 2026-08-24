@@ -1,9 +1,9 @@
-import 'package:alfares_pro_merchant/core/theme/app_widget_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../theme/app_widget_theme.dart';
 
 class PopupHelper {
   static Future<void> showCustomPopupMenu({
@@ -79,9 +79,7 @@ class PopupHelper {
                   ),
                 if (items[i].title != null)
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: 8,
-                    ),
+                    padding: const EdgeInsetsDirectional.only(start: 8),
                     child: Text(
                       items[i].title!,
                       style: 14.medium.copyWith(

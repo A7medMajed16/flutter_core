@@ -2,7 +2,7 @@ import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 
-import '../../common/widgets/display/custom_toast.dart';
+import '../../common/widgets/feedback/custom_toast.dart';
 import '../../helper/formatters/phone_length_helper.dart';
 
 extension WidgetSliverExtension on Widget {
@@ -26,17 +26,14 @@ extension SliverListSpacingExtension on List<Widget> {
     for (var i = 0; i < length; i++) {
       spaced.add(this[i]);
       if (i != length - 1) {
-        spaced.add(
-          SliverToBoxAdapter(child: SizedBox(height: spacing)),
-        );
+        spaced.add(SliverToBoxAdapter(child: SizedBox(height: spacing)));
       }
     }
     return spaced;
   }
 }
 
-extension PhoneTextEditingControllerExtension
-    on TextEditingController {
+extension PhoneTextEditingControllerExtension on TextEditingController {
   static final Map<TextEditingController, String> _countryCodes = {};
   String get selectedCountryCode => _countryCodes[this] ?? '964';
   void updateSelectedCountryCode(String countryCode) {
@@ -82,10 +79,7 @@ extension PhoneTextEditingControllerExtension
 }
 
 extension ShowCustomToast on String {
-  void showSuccessToast({
-    required BuildContext context,
-    String? description,
-  }) {
+  void showSuccessToast({required BuildContext context, String? description}) {
     CustomToast(
       context: context,
       header: this,
@@ -94,10 +88,7 @@ extension ShowCustomToast on String {
     ).showToast();
   }
 
-  void showErrorToast({
-    required BuildContext context,
-    String? description,
-  }) {
+  void showErrorToast({required BuildContext context, String? description}) {
     CustomToast(
       context: context,
       header: this,
@@ -106,21 +97,11 @@ extension ShowCustomToast on String {
     ).showToast();
   }
 
-  void showWarningToast({
-    required BuildContext context,
-    String? description,
-  }) {
-    CustomToast(
-      context: context,
-      header: this,
-      type: .warning,
-    ).showToast();
+  void showWarningToast({required BuildContext context, String? description}) {
+    CustomToast(context: context, header: this, type: .warning).showToast();
   }
 
-  void showDefaultToast({
-    required BuildContext context,
-    String? description,
-  }) {
+  void showDefaultToast({required BuildContext context, String? description}) {
     CustomToast(
       context: context,
       header: this,
@@ -204,20 +185,14 @@ class DashedBorder extends BoxBorder {
       if (borderRadius != null || radius > 0) {
         path = Path()
           ..addRRect(
-            (borderRadius ?? BorderRadius.circular(radius)).toRRect(
-              rect,
-            ),
+            (borderRadius ?? BorderRadius.circular(radius)).toRRect(rect),
           );
       } else {
         path = Path()..addRect(rect);
       }
     }
 
-    final Path dashedPath = _createDashedPath(
-      path,
-      dashWidth,
-      gapWidth,
-    );
+    final Path dashedPath = _createDashedPath(path, dashWidth, gapWidth);
     canvas.drawPath(dashedPath, paint);
   }
 
@@ -229,10 +204,7 @@ class DashedBorder extends BoxBorder {
         final double len = (distance + dash > metric.length)
             ? metric.length - distance
             : dash;
-        dest.addPath(
-          metric.extractPath(distance, distance + len),
-          Offset.zero,
-        );
+        dest.addPath(metric.extractPath(distance, distance + len), Offset.zero);
         distance += dash + gap;
       }
     }

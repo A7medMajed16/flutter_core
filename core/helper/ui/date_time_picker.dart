@@ -27,7 +27,7 @@ class DateTimePicker {
             colorScheme: ColorScheme.light(
               primary: AppColors.primerColor,
               onPrimary: AppColors.originalWhite,
-              onSurface: AppColors.black33,
+              onSurface: AppColors.black27,
               secondary: AppColors.primerColor,
             ),
             textButtonTheme: TextButtonThemeData(

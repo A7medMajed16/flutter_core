@@ -1,38 +1,42 @@
 // import 'dart:async' show Completer, StreamController, TimeoutException;
 
+// import 'package:flutter/widgets.dart' show AppLifecycleListener;
 // import 'package:injectable/injectable.dart' show lazySingleton;
 // import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 
 // import '../../helper/core/app_logger.dart';
 // import '../common/end_points.dart';
+// import 'socket_keep_alive.dart';
 
-// /// Connection lifecycle states for [SocketService].
 // enum SocketConnectionState {
 //   disconnected,
 //   connecting,
 //   connected,
 //   reconnecting,
 //   error,
+//   unauthorized,
 // }
 
 // typedef SocketEventHandler = void Function(dynamic data);
 
-// /// Generic, lifecycle-safe Socket.IO client for use from Cubits.
-// ///
-// /// Inject via DI (`@lazySingleton`). Cubits should:
-// /// 1. Call [connect] once (e.g. after auth) with optional `auth` / `query`.
-// /// 2. Register handlers with [on] and/or listen to [connectionStateStream].
-// /// 3. Guard Cubit emits with `if (!isClosed)` (or override `emit`).
-// /// 4. Call [off] / cancel stream subscriptions in `close()`.
-// ///
-// /// Do **not** call [dispose] from a single Cubit — it tears down the shared
-// /// socket. Use [dispose] only on logout or full session teardown.
-// ///
-// /// SafeEmitter is not used here: it targets Cubit + `Either` HTTP flows, not
-// /// push-based socket callbacks.
 // @lazySingleton
 // class SocketService {
+//   SocketService(this._keepAlive) {
+//     _lifecycleListener = AppLifecycleListener(
+//       onPause: _handleAppBackgrounded,
+//       onHide: _handleAppBackgrounded,
+//       onInactive: _handleAppBackgrounded,
+//       onResume: _handleAppResumed,
+//     );
+//   }
+
 //   static const String _tag = 'SocketService';
+
+//   final SocketKeepAlive _keepAlive;
+//   late final AppLifecycleListener _lifecycleListener;
+
+//   bool _shouldStayConnected = false;
+//   bool _backgroundKeepAliveHeld = false;
 
 //   socket_io.Socket? _socket;
 //   String? _activeUrl;
@@ -45,6 +49,8 @@
 //   Map<String, dynamic>? _lastExtraHeaders;
 
 //   final Map<String, List<SocketEventHandler>> _handlers = {};
+//   bool _isAnyEventLoggingEnabled = false;
+//   dynamic Function(String, dynamic)? _anyEventLogger;
 
 //   StreamController<SocketConnectionState> _connectionStateController =
 //       StreamController<SocketConnectionState>.broadcast();
@@ -62,10 +68,6 @@
 
 //   //! ─── Lifecycle ───
 
-//   /// Connects to the Socket.IO server.
-//   ///
-//   /// Idempotent for the same [url]/[namespace]: if already connected (or
-//   /// connecting) to that endpoint, this is a no-op unless [forceNew] is true.
 //   Future<void> connect({
 //     String? url,
 //     String? namespace,
@@ -74,6 +76,7 @@
 //     Map<String, dynamic>? extraHeaders,
 //     bool forceNew = false,
 //   }) async {
+//     _shouldStayConnected = true;
 //     final resolvedUrl = _resolveUrl(url, namespace);
 
 //     _lastUrl = url;
@@ -137,8 +140,6 @@
 //     }
 //   }
 
-//   /// Completes when the socket connects, errors, or times out.
-//   /// Does not throw on failure — callers can proceed either way.
 //   Future<void> _waitForConnectionAttempt({
 //     Duration timeout = const Duration(seconds: 20),
 //   }) async {
@@ -172,8 +173,19 @@
 //     }
 //   }
 
-//   /// Disconnects without disposing listeners or the service.
-//   Future<void> disconnect() async {
+//   /// Disconnects the socket session.
+//   ///
+//   /// When [disposeSocket] is true the underlying client is fully torn down
+//   /// (logout). Soft disconnect only stops the current connection.
+//   Future<void> disconnect({bool disposeSocket = false}) async {
+//     _shouldStayConnected = false;
+//     await _releaseBackgroundKeepAlive();
+//     if (disposeSocket) {
+//       AppLogger.info('Terminating socket session', tag: _tag);
+//       await _tearDownSocket(clearUserHandlers: true);
+//       _activeUrl = null;
+//       return;
+//     }
 //     try {
 //       if (_socket == null) {
 //         _updateState(SocketConnectionState.disconnected);
@@ -227,6 +239,9 @@
 //   /// Call only on logout / app teardown. Safe to call [connect] again afterward.
 //   Future<void> dispose() async {
 //     AppLogger.info('Disposing socket service', tag: _tag);
+//     _shouldStayConnected = false;
+//     await _releaseBackgroundKeepAlive();
+//     _lifecycleListener.dispose();
 //     await _tearDownSocket(clearUserHandlers: true);
 //     _activeUrl = null;
 //     if (!_connectionStateController.isClosed) {
@@ -302,6 +317,53 @@
 //     } catch (e, st) {
 //       AppLogger.error(
 //         'Failed to clear listeners: $e',
+//         error: e,
+//         stackTrace: st,
+//         tag: _tag,
+//       );
+//     }
+//   }
+
+//   /// Starts logging every incoming socket event with its payload.
+//   void startLoggingAllIncomingEvents() {
+//     _isAnyEventLoggingEnabled = true;
+//     _anyEventLogger ??= (event, payload) {
+//       AppLogger.debug(
+//         'Socket event received "$event" with payload: \n$payload',
+//         tag: _tag,
+//       );
+//     };
+
+//     final socket = _socket;
+//     if (socket == null) return;
+
+//     try {
+//       socket.offAny(_anyEventLogger);
+//       socket.onAny(_anyEventLogger!);
+//       AppLogger.info('Enabled incoming socket event logging', tag: _tag);
+//     } catch (e, st) {
+//       AppLogger.error(
+//         'Failed to enable incoming socket event logging: $e',
+//         error: e,
+//         stackTrace: st,
+//         tag: _tag,
+//       );
+//     }
+//   }
+
+//   /// Stops logging incoming socket events.
+//   void stopLoggingAllIncomingEvents() {
+//     _isAnyEventLoggingEnabled = false;
+//     final logger = _anyEventLogger;
+//     final socket = _socket;
+//     if (logger == null || socket == null) return;
+
+//     try {
+//       socket.offAny(logger);
+//       AppLogger.info('Disabled incoming socket event logging', tag: _tag);
+//     } catch (e, st) {
+//       AppLogger.error(
+//         'Failed to disable incoming socket event logging: $e',
 //         error: e,
 //         stackTrace: st,
 //         tag: _tag,
@@ -398,8 +460,9 @@
 //         .setTransports(['websocket'])
 //         .disableAutoConnect()
 //         .enableReconnection()
-//         .setReconnectionAttempts(10)
+//         .setReconnectionAttempts(double.infinity)
 //         .setReconnectionDelay(1000)
+//         .setReconnectionDelayMax(5000)
 //         .setTimeout(20000);
 
 //     if (forceNew) {
@@ -433,6 +496,10 @@
 //     socket.io.on('reconnect', _onReconnect);
 //     socket.io.on('reconnect_error', _onReconnectError);
 //     socket.io.on('reconnect_failed', _onReconnectFailed);
+
+//     if (_isAnyEventLoggingEnabled) {
+//       startLoggingAllIncomingEvents();
+//     }
 //   }
 
 //   void _reattachUserListeners() {
@@ -459,6 +526,9 @@
 //         socket.io.off('reconnect', _onReconnect);
 //         socket.io.off('reconnect_error', _onReconnectError);
 //         socket.io.off('reconnect_failed', _onReconnectFailed);
+//         if (_anyEventLogger != null) {
+//           socket.offAny(_anyEventLogger);
+//         }
 
 //         if (clearUserHandlers) {
 //           for (final entry in _handlers.entries) {
@@ -516,7 +586,16 @@
 
 //   void _onConnectError(dynamic data) {
 //     AppLogger.error('Connection error: $data', tag: _tag);
-//     _updateState(SocketConnectionState.error);
+//     final message = switch (data) {
+//       final Map map => map['message']?.toString() ?? '',
+//       _ => data?.toString() ?? '',
+//     };
+//     if (message.toLowerCase().contains('unauthorized')) {
+//       _shouldStayConnected = false;
+//       _updateState(SocketConnectionState.unauthorized);
+//     } else {
+//       _updateState(SocketConnectionState.error);
+//     }
 //   }
 
 //   void _onError(dynamic data) {
@@ -542,5 +621,47 @@
 //   void _onReconnectFailed(dynamic _) {
 //     AppLogger.error('Reconnect failed — giving up', tag: _tag);
 //     _updateState(SocketConnectionState.error);
+//   }
+
+//   Future<void> _handleAppBackgrounded() async {
+//     if (!_shouldStayConnected || _backgroundKeepAliveHeld) return;
+//     _backgroundKeepAliveHeld = true;
+//     try {
+//       await _keepAlive.acquire();
+//       AppLogger.info('Background keep-alive acquired', tag: _tag);
+//     } catch (e, st) {
+//       AppLogger.error(
+//         'Failed to acquire background keep-alive: $e',
+//         error: e,
+//         stackTrace: st,
+//         tag: _tag,
+//       );
+//       _backgroundKeepAliveHeld = false;
+//     }
+//   }
+
+//   Future<void> _handleAppResumed() async {
+//     await _releaseBackgroundKeepAlive();
+//     if (!_shouldStayConnected) return;
+//     if (!isConnected) {
+//       AppLogger.info('App resumed — reconnecting socket', tag: _tag);
+//       await reconnect();
+//     }
+//   }
+
+//   Future<void> _releaseBackgroundKeepAlive() async {
+//     if (!_backgroundKeepAliveHeld) return;
+//     _backgroundKeepAliveHeld = false;
+//     try {
+//       await _keepAlive.release();
+//       AppLogger.info('Background keep-alive released', tag: _tag);
+//     } catch (e, st) {
+//       AppLogger.error(
+//         'Failed to release background keep-alive: $e',
+//         error: e,
+//         stackTrace: st,
+//         tag: _tag,
+//       );
+//     }
 //   }
 // }

@@ -1,10 +1,10 @@
-import 'package:alfares_pro_merchant/core/theme/app_assets.dart';
 import 'package:easy_localization/easy_localization.dart' as ez;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../config/extensions/widgets_extensions.dart';
+import '../../../theme/app_assets.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
 import '../../../theme/app_widget_theme.dart';
@@ -82,8 +82,7 @@ class _CustomPhoneFieldState extends State<CustomPhoneField> {
 
   @override
   Widget build(BuildContext context) {
-    final countryCodes = PhoneLengthHelper.countryPhoneLengths.keys
-        .toList();
+    final countryCodes = PhoneLengthHelper.countryPhoneLengths.keys.toList();
     return Directionality(
       textDirection: TextDirection.rtl,
       child: TextFormField(
@@ -98,16 +97,13 @@ class _CustomPhoneFieldState extends State<CustomPhoneField> {
         },
         autofocus: false,
         maxLength: _focusNode.hasFocus ? _maxLength : null,
-        validator: (value) =>
-            widget.validator?.call(value, _maxLength),
+        validator: (value) => widget.validator?.call(value, _maxLength),
         focusNode: _focusNode,
         controller: _controller,
         maxLines: 1,
         textAlign: TextAlign.start,
         keyboardType: TextInputType.phone,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-        ],
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))],
         cursorColor: AppWidgetTheme.textFieldCursorColor,
         style: 16.regular,
         onFieldSubmitted: widget.onFieldSubmitted,
@@ -181,9 +177,7 @@ class _CustomPhoneFieldState extends State<CustomPhoneField> {
               BlendMode.srcIn,
             ),
           ),
-          errorBorder: customOutLineBorders(
-            borderColor: AppColors.originalRed,
-          ),
+          errorBorder: customOutLineBorders(borderColor: AppColors.originalRed),
           disabledBorder: customOutLineBorders(),
           border: customOutLineBorders(),
           enabledBorder: customOutLineBorders(),

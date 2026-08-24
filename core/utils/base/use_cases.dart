@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 
-import '../api/errors/failure.dart';
+import '../../api/errors/failure.dart';
 
 abstract class Usecase<T, P> {
   Future<Either<Failure, T>> call(P params);

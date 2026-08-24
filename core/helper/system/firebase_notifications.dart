@@ -2,19 +2,14 @@ import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:alfares_pro_driver/core/helper/core/app_logger.dart'
-    show AppLogger;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart'
-    show SharedPreferences;
 
-import '../../utils/constants/app_cache_keys.dart';
 import '../../utils/constants/app_strings.dart';
-import '../formatters/user_helper.dart';
+import '../core/app_logger.dart';
 import 'notification_action_handler.dart';
 
 class FirebaseNotifications {
@@ -308,8 +303,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
     AppLogger.info('Background message data: ${message.data}');
   }
-  var pref = await SharedPreferences.getInstance();
-  pref.setBool(AppCacheKeys.refreshOrders, true);
+  // var pref = await SharedPreferences.getInstance();
+  // pref.setBool(AppCacheKeys.refreshOrders, true);
   // DO NOT show regular notifications in background
   // Notifications should only appear when app is in foreground
 }
@@ -340,15 +335,10 @@ class FirebaseTopicManager {
           return;
         }
       }
-      var store = await UserHelper.getUserInfo();
-      final List<String> topicsName = [
-        "proAlfares_${store.id}",
-        "proAlfares_all",
-        "proAlfares_drivers",
-      ];
+
+      final List<String> topicsName = [];
 
       for (String topicName in topicsName) {
-        await messaging.subscribeToTopic(topicName);
         if (kDebugMode) {
           log('Subscribed to topic: $topicName');
         }
@@ -377,12 +367,8 @@ class FirebaseTopicManager {
           return;
         }
       }
-      var store = await UserHelper.getUserInfo();
-      final List<String> topicsName = [
-        "proAlfares_${store.id}",
-        "proAlfares_all",
-        "proAlfares_drivers",
-      ];
+
+      final List<String> topicsName = [];
 
       for (String topicName in topicsName) {
         await messaging.unsubscribeFromTopic(topicName);

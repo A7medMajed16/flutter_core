@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 
 import '../../api/errors/failure.dart';
-import '../../helper/logger_helper/app_logger.dart';
+import '../../helper/core/app_logger.dart';
 import '../classes/state_status.dart';
 
 mixin SafeEmitter<S> on Cubit<S> {
@@ -128,10 +128,13 @@ mixin SafeEmitter<S> on Cubit<S> {
       },
       (data) {
         final mapped = mapper(data);
-        emit(
-          stateField(StateStatus.success(data: mapped, time: DateTime.now())),
-        );
-        onSuccess?.call(mapped);
+        if (onSuccess != null) {
+          onSuccess.call(mapped);
+        } else {
+          emit(
+            stateField(StateStatus.success(data: mapped, time: DateTime.now())),
+          );
+        }
       },
     );
   }

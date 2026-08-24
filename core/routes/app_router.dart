@@ -1,23 +1,21 @@
 import 'package:auto_route/auto_route.dart';
 
 import 'app_route_definitions.dart';
-import 'app_router.gr.dart';
-import 'routes.dart';
 
 final appRouter = AppRouter();
 
 /// Central route table: path + generated [PageInfo], optional nested children.
 final _appRouteTable = <AppRouteDefinition>[
-  AppRouteDefinition(path: Routes.appBlocked, page: AppBlockedScreenRoute.page),
-  AppRouteDefinition(
-    path: Routes.imageViewer,
-    page: ImageViewerScreenRoute.page,
-  ),
-  AppRouteDefinition(
-    path: Routes.splash,
-    page: SplashScreenRoute.page,
-    initial: true,
-  ),
+  // AppRouteDefinition(path: Routes.appBlocked, page: AppBlockedScreenRoute.page),
+  // AppRouteDefinition(
+  //   path: Routes.imageViewer,
+  //   page: ImageViewerScreenRoute.page,
+  // ),
+  // AppRouteDefinition(
+  //   path: Routes.splash,
+  //   page: SplashScreenRoute.page,
+  //   initial: true,
+  // ),
 ];
 
 @AutoRouterConfig(replaceInRouteName: 'Screen,Page,Route')

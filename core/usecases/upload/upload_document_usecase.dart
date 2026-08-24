@@ -3,12 +3,13 @@ import 'package:injectable/injectable.dart';
 
 import '../../api/client/dio_consumer.dart';
 import '../../api/errors/failure.dart';
-import '../../utils/upload_params.dart';
-import '../../utils/use_cases.dart';
+import '../../utils/base/upload_params.dart';
+import '../../utils/base/use_cases.dart';
 import 'upload_progress_helper.dart';
 
 @lazySingleton
-class UploadDocumentUseCase implements StreamUsecase<dynamic, UploadDocumentParams> {
+class UploadDocumentUseCase
+    implements StreamUsecase<dynamic, UploadDocumentParams> {
   final DioConsumer _api;
 
   UploadDocumentUseCase(this._api);

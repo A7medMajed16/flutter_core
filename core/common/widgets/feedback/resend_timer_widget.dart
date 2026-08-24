@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+
 import 'dart:async';
 
 import '../../../theme/app_colors.dart';
@@ -72,12 +73,12 @@ class ResendTimerState extends State<ResendTimer> {
       child: _remainingSeconds > 0
           ? RichText(
               text: TextSpan(
-                style: 14.light.copyWith(color: AppColors.black33),
+                style: 14.light.copyWith(color: AppColors.black27),
                 children: [
                   TextSpan(text: 'custom_widget.resend'.tr().split('{}').first),
                   TextSpan(
                     text: _formatTime(_remainingSeconds),
-                    style: 14.bold.copyWith(color: AppColors.black33),
+                    style: 14.bold.copyWith(color: AppColors.black27),
                   ),
                   if ('custom_widget.resend'.tr().contains('{}') &&
                       'custom_widget.resend'.tr().split('{}').length > 1)
@@ -89,7 +90,7 @@ class ResendTimerState extends State<ResendTimer> {
             )
           : Text(
               'custom_widget.resend_title'.tr(),
-              style: 14.light.copyWith(color: AppColors.black33),
+              style: 14.light.copyWith(color: AppColors.black27),
             ),
     );
   }

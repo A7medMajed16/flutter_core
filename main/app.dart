@@ -1,16 +1,19 @@
 import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'core/routes/app_router.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_typography.dart';
-import 'core/theme/cubit/theme_cubit.dart';
+import 'core/theme/theme_cubit/theme_cubit.dart';
 import 'core/utils/constants/app_strings.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Root widget of the Al Ertiqa application
@@ -22,9 +25,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, bool>(
       builder: (context, isDarkMode) {
-        final brightness = isDarkMode
-            ? Brightness.dark
-            : Brightness.light;
+        final brightness = isDarkMode ? Brightness.dark : Brightness.light;
 
         SystemChrome.setSystemUIOverlayStyle(
           SystemUiOverlayStyle(

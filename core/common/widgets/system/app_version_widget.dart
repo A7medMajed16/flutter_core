@@ -26,7 +26,7 @@ class _AppVersionState extends State<AppVersion> {
         return Text(
           "v$version",
           style: 16.regular.copyWith(
-            color: AppColors.black33.withValues(alpha: 0.3),
+            color: AppColors.black27.withValues(alpha: 0.3),
           ),
         );
       },

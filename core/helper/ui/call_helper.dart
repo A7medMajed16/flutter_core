@@ -1,21 +1,18 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:alfares_pro_merchant/core/theme/app_assets.dart';
-import 'package:alfares_pro_merchant/core/theme/app_typography.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../theme/app_assets.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
 
 class CallHelper {
   CallHelper._();
 
-  static void showCallBottomSheet(
-    BuildContext context,
-    String phoneNumber,
-  ) {
+  static void showCallBottomSheet(BuildContext context, String phoneNumber) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -48,7 +45,7 @@ class CallHelper {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.black33,
+                    color: AppColors.black27,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -57,18 +54,18 @@ class CallHelper {
                   context: context,
                   title: "custom_widget.call".tr(),
                   iconPath: AppAssets.icons.phone.path,
-                  color: AppColors.black33,
+                  color: AppColors.black27,
                   onTap: () => launchLink('tel:$phoneNumber'),
                 ),
                 const SizedBox(height: 16),
-                _buildOption(
-                  context: context,
-                  title: "custom_widget.whatsapp".tr(),
-                  iconPath: AppAssets.icons.whatsapp.path,
-                  color: AppColors.green00A,
-                  onTap: () =>
-                      launchLink('https://wa.me/$phoneNumber'),
-                ),
+                // _buildOption(
+                //   context: context,
+                //   title: "custom_widget.whatsapp".tr(),
+                //   iconPath: AppAssets.icons.whatsapp.path,
+                //   color: AppColors.green00A,
+                //   onTap: () =>
+                //       launchLink('https://wa.me/$phoneNumber'),
+                // ),
                 const SizedBox(height: 24),
               ],
             ),
@@ -92,10 +89,7 @@ class CallHelper {
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.gray99),
           borderRadius: BorderRadius.circular(12),
@@ -112,16 +106,9 @@ class CallHelper {
               ),
             ),
             const SizedBox(width: 16),
-            Text(
-              title,
-              style: 14.medium.copyWith(color: AppColors.black33),
-            ),
+            Text(title, style: 14.medium.copyWith(color: AppColors.black27)),
             const Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: AppColors.gray99,
-            ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.gray99),
           ],
         ),
       ),

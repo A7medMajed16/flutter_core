@@ -1,8 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:hijri/hijri_calendar.dart' show HijriCalendar;
 import 'package:ntp/ntp.dart';
 
-import '../../cache/cache_helper.dart' show SP;
+import '../../cache/storage/cache_helper.dart';
 
 class DateTimeHelper {
   static int _ntpOffsetMs = 0;
@@ -26,7 +25,7 @@ class DateTimeHelper {
     'Sunday',
   ];
 
-  //!======================GET NOW======================
+  //!MARK: GET NOW======================
 
   static Future<DateTime> get now async => nowSync;
 
@@ -58,7 +57,7 @@ class DateTimeHelper {
   static DateTime toLocalDateTime(DateTime dateTime) =>
       dateTime.toUtc().toLocal();
 
-  //!======================FORMAT DATE TIME LOCALIZED====
+  //!MARK: FORMAT DATE TIME LOCALIZED====
   static String formatFullDateTimeLocalized(
     String date, {
     bool withTime = true,
@@ -133,7 +132,7 @@ class DateTimeHelper {
     }
   }
 
-  //!======================FORMAT WEEKDAY LOCALIZED======================
+  //!MARK: FORMAT WEEKDAY LOCALIZED======================
   static String formatWeekdayLocalized(DateTime dateTime) {
     final localDate = toLocalDateTime(dateTime);
     final weekdays = SP.getAppLang().startsWith('ar')
@@ -142,7 +141,7 @@ class DateTimeHelper {
     return weekdays[localDate.weekday - 1];
   }
 
-  //!======================LOCALIZE ARABIC COUNTS======================
+  //!MARK: LOCALIZE ARABIC COUNTS======================
   static String localizeCount(
     int count, {
     required String singularKey,
@@ -169,7 +168,7 @@ class DateTimeHelper {
     }
   }
 
-  //!======================FORMAT DURATION IN MONTHS======================
+  //!MARK: FORMAT DURATION IN MONTHS======================
   static String formatDurationInMonths(int totalMonths) {
     if (totalMonths <= 0) return '';
 
@@ -203,7 +202,7 @@ class DateTimeHelper {
     return parts.join(isAr ? ' و ' : ' and ');
   }
 
-  //!======================TIME AGO FROM NOW======================
+  //!MARK: TIME AGO FROM NOW======================
   static String timeAgoFromNow(String date) {
     final DateTime dateTime = parseToLocal(date);
     final DateTime now = nowSync;
@@ -239,7 +238,7 @@ class DateTimeHelper {
     return '${'date_time.from'.tr()} ${parts.join(' ${'date_time.and'.tr()}')}';
   }
 
-  //!======================REFORMAT DATE TIME======================
+  //!MARK: REFORMAT DATE TIME======================
   static String reformatDateTime(String date) {
     final DateTime dateTime = parseToLocal(date);
     final int hour = dateTime.hour > 12
@@ -255,14 +254,14 @@ class DateTimeHelper {
         '_${hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
 
-  //!======================REFORMAT DATE======================
+  //!MARK: REFORMAT DATE======================
   static String reformatDate(String date) {
     final DateTime dateTime = parseToLocal(date);
 
     return dateTime.toString().split(' ')[0].split('-').reversed.join('/');
   }
 
-  //!======================REFORMAT DATE LOCALIZED======================
+  //!MARK: REFORMAT DATE LOCALIZED======================
   static String reformatDateLocalized(
     String date, {
     String? locale,
@@ -323,7 +322,7 @@ class DateTimeHelper {
     }
   }
 
-  //!======================FORMAT DATE WITH TIME RANGE LOCALIZED=========
+  //!MARK: FORMAT DATE WITH TIME RANGE LOCALIZED=========
   /// Example: الأحد 12 يوليو [ 2:00ص : 3:15ص ]
   static String formatDateWithTimeRangeLocalized(
     DateTime dateTime,
@@ -352,7 +351,7 @@ class DateTimeHelper {
     return '$hour:$minute$period';
   }
 
-  //!======================REFORMAT TIME REMAINING======================
+  //!MARK: REFORMAT TIME REMAINING======================
   static String reformatTimeRemaining(
     String date, {
     bool showDays = true,
@@ -387,7 +386,7 @@ class DateTimeHelper {
     return parts.join(' / ');
   }
 
-  //!======================REFORMAT DAY REMAINING======================
+  //!MARK: REFORMAT DAY REMAINING======================
   static String reformatDayRemaining(String endDate) {
     final DateTime end = DateTime.parse(endDate).toLocal();
     final DateTime now = nowSync;
@@ -403,7 +402,7 @@ class DateTimeHelper {
     return '( متبقي $days $dayWord)';
   }
 
-  //!======================REFORMAT TIME LOCALIZED======================
+  //!MARK: REFORMAT TIME LOCALIZED======================
   static String reformatTimeLocalized(String date, {String? locale}) {
     final DateTime dateTime = parseToLocal(date);
     final contextLocale = locale ?? SP.getAppLang();
@@ -462,27 +461,27 @@ class DateTimeHelper {
     return '${hour12.toString().padLeft(2, '0')}:$minuteStr $period';
   }
 
-  //!======================FORMAT TO HIJRI AND GREGORIAN======================
-  static String formatToHijriAndGregorian(String date, {String locale = 'ar'}) {
-    final DateTime dateTime = parseToLocal(date);
+  //!MARK: FORMAT TO HIJRI AND GREGORIAN======================
+  // static String formatToHijriAndGregorian(String date, {String locale = 'ar'}) {
+  //   final DateTime dateTime = parseToLocal(date);
 
-    HijriCalendar.setLocal(locale);
-    final HijriCalendar hijriDate = HijriCalendar.fromDate(dateTime);
+  //   HijriCalendar.setLocal(locale);
+  //   final HijriCalendar hijriDate = HijriCalendar.fromDate(dateTime);
 
-    final String hijriString =
-        '${hijriDate.hDay} ${hijriDate.longMonthName} ${hijriDate.hYear} هـ';
+  //   final String hijriString =
+  //       '${hijriDate.hDay} ${hijriDate.longMonthName} ${hijriDate.hYear} هـ';
 
-    final String gregorianString = DateFormat(
-      'dd MMMM yyyy',
-      locale,
-    ).format(dateTime);
+  //   final String gregorianString = DateFormat(
+  //     'dd MMMM yyyy',
+  //     locale,
+  //   ).format(dateTime);
 
-    return locale == 'ar'
-        ? '$hijriString (الموافق $gregorianString م)'
-        : '$hijriString ($gregorianString)';
-  }
+  //   return locale == 'ar'
+  //       ? '$hijriString (الموافق $gregorianString م)'
+  //       : '$hijriString ($gregorianString)';
+  // }
 
-  //!======================GET REMAINING DAYS======================
+  //!MARK: GET REMAINING DAYS======================
   static String getRemainingDays(String date) {
     final DateTime dateTime = parseToLocal(date);
     final DateTime now = nowSync;
@@ -499,7 +498,7 @@ class DateTimeHelper {
     }
   }
 
-  //!======================GET REMAINING HOURS======================
+  //!MARK: GET REMAINING HOURS======================
   static String getRemainingHours(String date) {
     final DateTime dateTime = parseToLocal(date);
     final DateTime now = nowSync;

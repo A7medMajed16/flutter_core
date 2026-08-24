@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+
 import '../../../config/classes/state_status.dart';
 import '../../../theme/app_animation_curves.dart';
-import 'custom_error_widget.dart';
+import '../feedback/custom_error_widget.dart';
 
 class SliversStateManager<T> extends StatelessWidget {
   const SliversStateManager({
@@ -42,7 +43,7 @@ class SliversStateManager<T> extends StatelessWidget {
                   failureSliver ??
                   SliverToBoxAdapter(
                     child: CustomErrorWidget(
-                      errorMessage: state.error?.errorMessage,
+                      errorMessage: state.failure?.errorMessage,
                       onPressed: onRetry,
                     ),
                   ),

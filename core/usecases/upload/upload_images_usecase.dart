@@ -3,12 +3,13 @@ import 'package:injectable/injectable.dart';
 
 import '../../api/client/dio_consumer.dart';
 import '../../api/errors/failure.dart';
-import '../../utils/upload_params.dart';
-import '../../utils/use_cases.dart';
+import '../../utils/base/upload_params.dart';
+import '../../utils/base/use_cases.dart';
 import 'upload_progress_helper.dart';
 
 @lazySingleton
-class UploadImagesUseCase implements StreamUsecase<dynamic, UploadImagesParams> {
+class UploadImagesUseCase
+    implements StreamUsecase<dynamic, UploadImagesParams> {
   final DioConsumer _api;
 
   UploadImagesUseCase(this._api);
@@ -19,7 +20,7 @@ class UploadImagesUseCase implements StreamUsecase<dynamic, UploadImagesParams> 
     final total = paths.length;
     final results = <String>[];
     double completedProgress = 0.0;
-    
+
     if (total == 0) {
       yield const Right(<String>[]);
       return;
@@ -53,7 +54,7 @@ class UploadImagesUseCase implements StreamUsecase<dynamic, UploadImagesParams> 
       }
       completedProgress += share;
     }
-    
+
     // Once all images are successfully uploaded, yield the final list of URLs.
     yield Right(results);
   }
