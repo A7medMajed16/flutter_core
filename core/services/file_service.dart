@@ -5,11 +5,22 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+enum FileTypes {
+  image(mimeType: "image/jpeg", extensions: ["jpg", "jpeg", "png"]),
+  video(mimeType: "video/mp4", extensions: ["mp4", "avi", "mov"]),
+  pdf(mimeType: "application/pdf", extensions: ["pdf"]),
+  unknown();
+
+  final String? mimeType;
+  final List<String>? extensions;
+
+  const FileTypes({this.mimeType, this.extensions});
+}
+
 class FileService {
-  /// Compresses [file] as JPEG.
-  ///
-  /// When [maxBytes] is set, quality is reduced until the file fits (or min quality).
-  /// When [maxWidth] is set, the longest side is scaled down before encoding.
+  static const int _bytesPerKilobyte = 1024;
+  static const int _bytesPerMegabyte = _bytesPerKilobyte * 1024;
+
   Future<File?> compressImage(
     File file, {
     int quality = 80,
@@ -63,5 +74,37 @@ class FileService {
     } catch (e) {
       return null;
     }
+  }
+
+  static String formatFileSize(int? bytes) {
+    if (bytes == null || bytes <= 0) return '';
+
+    if (bytes < _bytesPerMegabyte) {
+      final kb = bytes / _bytesPerKilobyte;
+      return '${kb.toStringAsFixed(kb >= 10 ? 0 : 1)} KB';
+    }
+
+    final mb = bytes / _bytesPerMegabyte;
+    return '${mb.toStringAsFixed(1)} MB';
+  }
+
+  static String getFileName(String path) {
+    return path.split('/').last;
+  }
+
+  static String getFileExtension(String path) {
+    return path.split('.').last;
+  }
+
+  static FileTypes getFileType(String path) {
+    final extension = getFileExtension(path);
+    if (extension == 'jpg' || extension == 'jpeg' || extension == 'png') {
+      return FileTypes.image;
+    } else if (extension == 'mp4' || extension == 'avi' || extension == 'mov') {
+      return FileTypes.video;
+    } else if (extension == 'pdf') {
+      return FileTypes.pdf;
+    }
+    return FileTypes.unknown;
   }
 }
