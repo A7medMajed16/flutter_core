@@ -59,8 +59,11 @@ void main() async {
   //!==============================================
   // Run the application with localization wrapper
   runApp(
-    BlocProvider(
-      create: (_) => ThemeCubit(),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider(create: (_) => getIt<DownloadCubit>()),
+      ],
       child: EasyLocalization(
         // Supported languages (currently only Arabic)
         supportedLocales: AppLocals.supportedLocales,

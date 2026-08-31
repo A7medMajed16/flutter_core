@@ -51,4 +51,9 @@ abstract class ApiConsumer {
     required String documentPath,
     void Function(int sent, int total)? onSendProgress,
   });
+  Future<String> downloadFile({
+    required String url,
+    required String savePath,
+    void Function(int received, int total)? onReceiveProgress,
+  });
 }

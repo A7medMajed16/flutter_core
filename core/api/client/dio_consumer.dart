@@ -196,4 +196,14 @@ class DioConsumer implements ApiConsumer {
     );
     return response.data["file"];
   }
+
+  @override
+  Future<String> downloadFile({
+    required String url,
+    required String savePath,
+    void Function(int received, int total)? onReceiveProgress,
+  }) async {
+    await dio.download(url, savePath, onReceiveProgress: onReceiveProgress);
+    return savePath;
+  }
 }

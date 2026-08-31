@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart' show injectable;
 
-import '../../cache/storage/cache_helper.dart';
+import '../../cache/cache_helper.dart';
 
+@injectable
 class ThemeCubit extends Cubit<bool> {
   ThemeCubit() : super(SP.isDarkMode);
 
@@ -17,8 +19,7 @@ class ThemeCubit extends Cubit<bool> {
     emit(value);
   }
 
-  Brightness get brightness =>
-      state ? Brightness.dark : Brightness.light;
+  Brightness get brightness => state ? Brightness.dark : Brightness.light;
 
   ThemeMode get themeMode => state ? ThemeMode.dark : ThemeMode.light;
 }
