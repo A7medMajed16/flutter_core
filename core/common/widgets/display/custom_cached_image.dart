@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../api/common/end_points.dart';
 import '../../../theme/app_colors.dart';

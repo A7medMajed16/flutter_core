@@ -5,7 +5,7 @@ import 'package:injectable/injectable.dart';
 import '../../config/classes/state_status.dart';
 import '../../config/mixins/safe_emitter.dart';
 import '../../usecases/download/download_file_usecase.dart';
-import '../../utils/download_params.dart';
+import '../../utils/base/download_params.dart';
 
 part 'download_cubit_state.dart';
 part 'download_cubit.freezed.dart';

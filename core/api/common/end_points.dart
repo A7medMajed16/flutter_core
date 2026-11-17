@@ -1,12 +1,11 @@
-import '../../../main.dart';
+import 'env.dart';
 
 class EndPoints {
-  static const String baseIp = runLocal
-      ? 'http://192.168.1.205:1216'
-      : "https://flavor-house.md-iraqsoft.com";
+  static const String baseIp = Env.baseUrl;
   static const String apiUrl = '$baseIp/api/v1';
   static const String baseImageUrl = '$baseIp/uploads/images/';
   static const String baseVideoUrl = '$baseIp/uploads/videos/';
+  static const String baseFileUrl = '$baseIp/uploads/files/';
   static const String refreshToken = "/auth/refresh";
   static const String uploadOneFile = "/upload/document";
   static const String uploadOneImage = "/upload/image";
@@ -52,8 +51,7 @@ class EndPoints {
   static const String rewards = "/rewards";
   static const String contacts = "/contacts";
   static const String features = "/features";
-  static const String transactionsHistory =
-      "/transactions/my-history";
+  static const String transactionsHistory = "/transactions/my-history";
 
   //!================ NOTIFICATIONS ================
   static const String notifications = "/notification";

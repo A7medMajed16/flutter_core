@@ -2,7 +2,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:auto_route/auto_route.dart'
     show AutoLeadingButton, AutoRouterX;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../theme/app_typography.dart';
 

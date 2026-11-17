@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'download_cubit.dart';
@@ -9,6 +9,7 @@ part of 'download_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $DownloadCubitStateCopyWith<DownloadCubitState> get copyWith => _$DownloadCubitS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadCubitState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.downloadStatus, downloadStatus) || other.downloadStatus == downloadStatus));
+  final _this = this as DownloadCubitState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadCubitState&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.downloadStatus, _this.downloadStatus) || other.downloadStatus == _this.downloadStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,fileName,downloadStatus);
+int get hashCode {
+  final _this = this as DownloadCubitState;
+  return Object.hash(runtimeType,_this.fileName,_this.downloadStatus);
+}
 
 @override
 String toString() {
-  return 'DownloadCubitState(fileName: $fileName, downloadStatus: $downloadStatus)';
+  final _this = this as DownloadCubitState;
+  return 'DownloadCubitState(fileName: ${_this.fileName}, downloadStatus: ${_this.downloadStatus})';
 }
 
 
@@ -63,7 +69,7 @@ class _$DownloadCubitStateCopyWithImpl<$Res>
 /// Create a copy of DownloadCubitState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? fileName = null,Object? downloadStatus = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadCubitState(
 fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,downloadStatus: null == downloadStatus ? _self.downloadStatus : downloadStatus // ignore: cast_nullable_to_non_nullable
 as StateStatus<String>,
@@ -232,16 +238,18 @@ _$DownloadCubitStateCopyWith<_DownloadCubitState> get copyWith => __$DownloadCub
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadCubitState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.downloadStatus, downloadStatus) || other.downloadStatus == downloadStatus));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadCubitState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.downloadStatus, downloadStatus) || other.downloadStatus == downloadStatus));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,fileName,downloadStatus);
+int get hashCode {
+    return Object.hash(runtimeType,fileName,downloadStatus);
+}
 
 @override
 String toString() {
-  return 'DownloadCubitState(fileName: $fileName, downloadStatus: $downloadStatus)';
+    return 'DownloadCubitState(fileName: $fileName, downloadStatus: $downloadStatus)';
 }
 
 

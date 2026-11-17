@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +11,7 @@ import 'core/dependency_injection/injectable_config.dart';
 import 'core/helper/core/bloc_observer.dart';
 import 'core/helper/formatters/date_time_helper.dart';
 import 'core/localization/app_locals.dart';
+import 'core/presentation/download/download_cubit.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 

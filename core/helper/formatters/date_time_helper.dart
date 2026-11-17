@@ -1,5 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:ntp/ntp.dart';
+//! OPTIONAL "hijri": requires hijri. Enable it in Automation_dart/init_project_folders.dart.
+//#optional:hijri
+// import 'package:hijri/hijri_calendar.dart';
+//#end-optional:hijri
 
 import '../../cache/storage/cache_helper.dart';
 
@@ -462,6 +466,7 @@ class DateTimeHelper {
   }
 
   //!MARK: FORMAT TO HIJRI AND GREGORIAN======================
+//#optional:hijri
   // static String formatToHijriAndGregorian(String date, {String locale = 'ar'}) {
   //   final DateTime dateTime = parseToLocal(date);
 
@@ -480,6 +485,7 @@ class DateTimeHelper {
   //       ? '$hijriString (الموافق $gregorianString م)'
   //       : '$hijriString ($gregorianString)';
   // }
+//#end-optional:hijri
 
   //!MARK: GET REMAINING DAYS======================
   static String getRemainingDays(String date) {

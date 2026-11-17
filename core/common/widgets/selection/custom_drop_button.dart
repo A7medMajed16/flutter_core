@@ -1,7 +1,7 @@
-import 'package:alfares_pro_merchant/core/utils/constants/app_strings.dart';
+import '../../../utils/constants/app_strings.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart' as ez;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../theme/app_colors.dart';

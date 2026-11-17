@@ -1,6 +1,6 @@
 import 'dart:ui' show PathMetric;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../common/widgets/feedback/custom_toast.dart';
 import '../../helper/formatters/phone_length_helper.dart';
