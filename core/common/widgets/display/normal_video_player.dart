@@ -1,7 +1,10 @@
+//! OPTIONAL "video": requires chewie, video_player.
+//! Enable it in Automation_dart/init_project_folders.dart (optionalFeatures).
+//#optional:video
 // import 'dart:io';
 
 // import 'package:chewie/chewie.dart';
-// import 'package:flutter/material.dart';
+// import 'package:material_ui/material_ui.dart';
 // import 'package:video_player/video_player.dart';
 
 // import '../../../theme/app_widget_theme.dart';
@@ -68,3 +71,4 @@
 //           );
 //   }
 // }
+//#end-optional:video

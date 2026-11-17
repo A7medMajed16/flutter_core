@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'state_status.dart';
@@ -9,6 +9,7 @@ part of 'state_status.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -20,7 +21,7 @@ mixin _$StateStatus<T> {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StateStatus<T>);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is StateStatus<T>);
 }
 
 
@@ -216,12 +217,14 @@ _$InitialCopyWith<T, _Initial<T>> get copyWith => __$InitialCopyWithImpl<T, _Ini
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial<T>&&const DeepCollectionEquality().equals(other.data, data));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial<T>&&const DeepCollectionEquality().equals(other.data, data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(data));
+}
 
 
 
@@ -280,12 +283,14 @@ _$LoadingCopyWith<T, _Loading<T>> get copyWith => __$LoadingCopyWithImpl<T, _Loa
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading<T>&&(identical(other.index, index) || other.index == index)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading<T>&&(identical(other.index, index) || other.index == index)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.time, time) || other.time == time));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,index,progress,time);
+int get hashCode {
+    return Object.hash(runtimeType,index,progress,time);
+}
 
 
 
@@ -345,12 +350,14 @@ _$UpdateUiCopyWith<T, _UpdateUi<T>> get copyWith => __$UpdateUiCopyWithImpl<T, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateUi<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateUi<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+}
 
 
 
@@ -409,12 +416,14 @@ _$LoadingMoreCopyWith<T, _LoadingMore<T>> get copyWith => __$LoadingMoreCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoadingMore<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoadingMore<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+}
 
 
 
@@ -473,12 +482,14 @@ _$SuccessCopyWith<T, _Success<T>> get copyWith => __$SuccessCopyWithImpl<T, _Suc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Success<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Success<T>&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.time, time) || other.time == time));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(data),time);
+}
 
 
 
@@ -537,12 +548,14 @@ _$FailureCopyWith<T, _Failure<T>> get copyWith => __$FailureCopyWithImpl<T, _Fai
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Failure<T>&&(identical(other.failure, failure) || other.failure == failure)&&(identical(other.time, time) || other.time == time));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Failure<T>&&(identical(other.failure, failure) || other.failure == failure)&&(identical(other.time, time) || other.time == time));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure,time);
+int get hashCode {
+    return Object.hash(runtimeType,failure,time);
+}
 
 
 

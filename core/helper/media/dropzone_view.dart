@@ -1,5 +1,5 @@
 // stub_dropzone.dart - Stub file for non-web platforms
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Stub implementations for non-web platforms
 class DropzoneView extends StatelessWidget {

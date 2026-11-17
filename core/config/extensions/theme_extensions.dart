@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension ThemeExtensions on BuildContext {
   /// Returns true if the current theme is dark

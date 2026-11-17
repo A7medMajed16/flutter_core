@@ -1,95 +1,172 @@
 // ignore_for_file: unused_local_variable
 
-import 'dart:developer';
 import 'dart:io';
 
-Future<void> runVSCodeCommand(
-  String command,
-  List<String> packages,
-) async {
-  try {
-    log('Running VS Code command: $command');
-    log('Adding packages: ${packages.join(', ')}');
+// ============================================================================
+//  OPTIONAL FEATURES — not every project needs these.
+//  Set a feature to `true` (or pass its name as an argument, e.g.
+//  `dart run init_project_folders.dart location hijri`) to:
+//    1. add its packages to pubspec.yaml
+//    2. uncomment its code in lib/core (blocks marked //#optional:<name>)
+//  Left `false`, the code stays commented out and nothing fails to compile.
+// ============================================================================
+const optionalFeatures = <String, bool>{
+  'location': false,
+  'video': false,
+  'hijri': false,
+  'firebase_extras': false,
+  'extras': false,
+};
 
-    // Create a temporary file with package names for the command
-    final tempFile = File(
-      '${Directory.current.path}/.temp_packages.txt',
-    );
-    await tempFile.writeAsString(packages.join(','));
+const optionalPackages = <String, List<String>>{
+  // core/helper/system/location_helper.dart
+  // core/common/widgets/sheets/map_chooser_bottom_sheet.dart
+  'location': ['geolocator', 'geocoding', 'latlong2', 'map_launcher'],
+  // core/common/widgets/display/normal_video_player.dart
+  'video': ['chewie', 'video_player'],
+  // DateTimeHelper.formatToHijriAndGregorian
+  'hijri': ['hijri'],
+  // No core code — common app packages
+  'firebase_extras': [
+    'firebase_analytics',
+    'firebase_auth',
+    'firebase_crashlytics',
+    'firebase_storage',
+  ],
+  // No core code — packages many (not all) apps use
+  'extras': [
+    'file_picker',
+    'image_picker',
+    'image_cropper',
+    'lottie',
+    'pinput',
+    'uuid',
+    'flutter_dotenv',
+  ],
+};
 
-    // Run VS Code command using code CLI
-    final result = await Process.run('code', [
-      '--command',
-      command,
-      '--args',
-      packages.join(','),
-    ], workingDirectory: Directory.current.path);
+// Packages used by live (uncommented) code in core/ and main/.
+// Every project gets these. If you add a package import to core,
+// add it here too, or new projects will fail to analyze.
+const coreDependencies = [
+  // Flutter 3.50+: Material & Cupertino live in standalone packages
+  'material_ui',
+  'cupertino_ui',
+  'auto_route',
+  'bloc',
+  'cached_network_image',
+  'dartz',
+  'dio',
+  'easy_localization',
+  'equatable',
+  'flutter_bloc',
+  'flutter_cache_manager',
+  'flutter_screenutil',
+  'flutter_secure_storage',
+  'flutter_svg',
+  'freezed_annotation',
+  'get_it',
+  'image',
+  'injectable',
+  'just_audio',
+  'liquid_pull_to_refresh',
+  'ntp',
+  'package_info_plus',
+  'path',
+  'path_provider',
+  'pretty_dio_logger',
+  'shared_preferences',
+  'shimmer',
+  'sliver_tools',
+  'toastification',
+  'url_launcher',
+  'vector_graphics',
+  'vibration',
+  // core/helper/system/firebase_notifications.dart.
+  // Firebase itself stays disabled until you uncomment the init in main.dart.
+  'firebase_core',
+  'firebase_messaging',
+  'flutter_local_notifications',
+  'permission_handler',
+];
 
-    if (result.exitCode == 0) {
-      log('VS Code command executed successfully ✓');
-    } else {
-      log('VS Code command failed: ${result.stderr} ✗');
-      // Fallback: Try using osascript for macOS
-      await runVSCodeCommandMacOS(command, packages);
-    }
+const sdkDependencies = ['flutter_web_plugins'];
 
-    // Clean up temp file
-    if (tempFile.existsSync()) {
-      tempFile.deleteSync();
-    }
-  } catch (e) {
-    log('Error running VS Code command: $e');
-    // Fallback to macOS AppleScript approach
-    await runVSCodeCommandMacOS(command, packages);
+const devDependencies = [
+  'auto_route_generator',
+  'build_runner',
+  'flutter_launcher_icons',
+  'flutter_native_splash',
+  'freezed',
+  'injectable_generator',
+];
+
+void log(String message) => stdout.writeln(message);
+
+/// Uncomments every `//#optional:<feature>` ... `//#end-optional:<feature>`
+/// block under [dir] by removing one leading `// ` from each line.
+void enableOptionalCode(Directory dir, String feature) {
+  final start = '//#optional:$feature';
+  final end = '//#end-optional:$feature';
+  final commentPrefix = RegExp(r'^(\s*)// ?');
+
+  for (final entity in dir.listSync(recursive: true)) {
+    if (entity is! File || !entity.path.endsWith('.dart')) continue;
+    final content = entity.readAsStringSync();
+    if (!content.contains(start)) continue;
+
+    var inside = false;
+    final lines = content.split('\n').map((line) {
+      final trimmed = line.trim();
+      if (trimmed == start) {
+        inside = true;
+        // Renamed so a second run never double-uncomments
+        return line.replaceFirst('#optional:', '#optional-enabled:');
+      }
+      if (trimmed == end) {
+        inside = false;
+        return line;
+      }
+      return inside
+          ? line.replaceFirstMapped(commentPrefix, (m) => m[1]!)
+          : line;
+    });
+    entity.writeAsStringSync(lines.join('\n'));
+    log('Enabled "$feature" in ${entity.path} ✓');
   }
 }
 
-Future<void> runVSCodeCommandMacOS(
-  String command,
-  List<String> packages,
-) async {
-  try {
-    log('Trying macOS AppleScript approach...');
-
-    // Use AppleScript to send commands to VS Code
-    final script =
-        '''
-      tell application "Visual Studio Code"
-        activate
-        delay 1
-      end tell
-      
-      tell application "System Events"
-        keystroke "p" using {command down, shift down}
-        delay 0.5
-        keystroke "$command"
-        delay 0.5
-        key code 36
-        delay 1
-        keystroke "${packages.join(',')}"
-        delay 0.5
-        key code 36
-      end tell
-    ''';
-
-    final result = await Process.run('osascript', ['-e', script]);
-
-    if (result.exitCode == 0) {
-      log('VS Code command executed via AppleScript ✓');
-    } else {
-      log('AppleScript execution failed: ${result.stderr} ✗');
-      log(
-        'Please manually run: $command with packages: ${packages.join(', ')}',
-      );
-    }
-  } catch (e) {
-    log('Error with AppleScript: $e');
-    log('Please manually run VS Code command: $command');
-    log('With packages: ${packages.join(', ')}');
+Future<bool> runCommand(String executable, List<String> args) async {
+  log('Running: $executable ${args.join(' ')}');
+  final result = await Process.run(
+    executable,
+    args,
+    workingDirectory: Directory.current.path,
+    runInShell: true,
+  );
+  if (result.exitCode == 0) {
+    log('Done ✓');
+    return true;
   }
+  log('Failed ✗\n${result.stdout}\n${result.stderr}');
+  return false;
 }
 
-void main() async {
+Future<bool> runFlutter(List<String> args) => runCommand('flutter', args);
+
+void main(List<String> args) async {
+  final enabledFeatures = {
+    ...optionalFeatures.entries.where((e) => e.value).map((e) => e.key),
+    ...args,
+  };
+  final unknown = enabledFeatures.difference(optionalFeatures.keys.toSet());
+  if (unknown.isNotEmpty) {
+    log('Unknown optional feature(s): ${unknown.join(', ')}');
+    log('Available: ${optionalFeatures.keys.join(', ')}');
+    return;
+  }
+  log('Optional features: ${enabledFeatures.isEmpty ? 'none' : enabledFeatures.join(', ')}');
+
   final mainCorePath = "/Users/ahmedmajed/Desktop/Projects/core";
   final corePath = "$mainCorePath/core";
 
@@ -128,6 +205,8 @@ void main() async {
       final fileName = entity.path.split(Platform.pathSeparator).last;
       final newPath =
           '${destDir.path}${Platform.pathSeparator}$fileName';
+
+      if (fileName == '.DS_Store') continue;
 
       if (entity is File) {
         entity.copySync(newPath);
@@ -174,75 +253,42 @@ void main() async {
     copyDirectory(yamlFilesPath, projectRoot);
     log('YAML files copied successfully ✓');
 
-    // Add dependencies using VS Code Pubspec Assist
-    log('\n=== Adding Dependencies via VS Code ===');
+    // Remove the default counter test that references the deleted MyApp
+    final defaultTest = File('$projectRoot/test/widget_test.dart');
+    if (defaultTest.existsSync()) {
+      defaultTest.deleteSync();
+      log('Removed default test/widget_test.dart ✓');
+    }
 
-    final mainDependencies = [
-      'bloc',
-      'cached_network_image',
-      'dartz',
-      'dio',
-      'equatable',
-      'file_picker',
-      'flutter_bloc',
-      'flutter_launcher_icons',
-      'flutter_local_notifications',
-      'flutter_svg',
-      'get_it',
-      'go_router',
-      'lottie',
-      'permission_handler',
-      'shared_preferences',
-      'shimmer',
-      'url_launcher',
-      'uuid',
-      'flutter_dotenv',
-      'flutter_secure_storage',
-      'flutter_native_splash',
-      'flutter_screenutil',
-      'image_picker',
-      'image_cropper',
-      'pretty_dio_logger',
-      'flutter_cache_manager',
-      'easy_localization',
-      'pinput',
-      'toastification',
-      'chewie',
-      'video_player',
-      'injectable',
-    ];
+    log('\n=== Adding Dependencies ===');
+    await runFlutter(['pub', 'add', ...coreDependencies]);
+    for (final sdkDep in sdkDependencies) {
+      await runFlutter(['pub', 'add', sdkDep, '--sdk=flutter']);
+    }
+    await runFlutter([
+      'pub',
+      'add',
+      ...devDependencies.map((d) => 'dev:$d'),
+    ]);
 
-    final devDependencies = ['build_runner', 'injectable_generator'];
+    for (final feature in enabledFeatures) {
+      log('\n=== Enabling optional feature: $feature ===');
+      await runFlutter(['pub', 'add', ...optionalPackages[feature]!]);
+      enableOptionalCode(Directory(destinationPath), feature);
+    }
 
-    final firebaseDependencies = [
-      'firebase_analytics',
-      'firebase_auth',
-      'firebase_core',
-      'firebase_crashlytics',
-      'firebase_messaging',
-      'firebase_storage',
-    ];
+    // Regenerate injectable / auto_route / freezed outputs for this project
+    log('\n=== Running build_runner ===');
+    await runCommand('dart', [
+      'run',
+      'build_runner',
+      'build',
+      '--delete-conflicting-outputs',
+    ]);
 
-    // Add main dependencies
-    await runVSCodeCommand(
-      'Pubspec Assist: Add/update dependencies',
-      mainDependencies,
-    );
-
-    // Add dev dependencies
-    await runVSCodeCommand(
-      'Pubspec Assist: Add/update dev dependencies',
-      devDependencies,
-    );
-    //!==========================REMOVE COMMENT TO ADD FIREBASE DEPENDENCIES==========================
-    // log('Adding Firebase dependencies...');
-    // await runVSCodeCommand(
-    //   'Pubspec Assist: Add/update dependencies',
-    //   firebaseDependencies,
-    // );
     log('\n=== All operations completed successfully! ===');
   } catch (e) {
     log('Error copying folders: $e ✗');
   }
 }
-// Run with: dart run lib/init_project_folders.dart
+// Run with: dart run <path>/init_project_folders.dart [location] [video] [hijri] [firebase_extras] [extras]

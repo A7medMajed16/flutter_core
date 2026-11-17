@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A helper widget that handle pagination by listening to scroll notifications.
 /// It detects when the user reaches the bottom of the scrollable area and

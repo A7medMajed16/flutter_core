@@ -75,11 +75,14 @@ class FirebaseNotifications {
         }
       }
 
-      // Get and save FCM token
-      String? token = await messaging.getToken();
-      if (token != null && kDebugMode) {
-        AppLogger.info('FCM Token: $token');
-      }
+      // Register with FCM; onRegistered emits the installation ID (FID)
+      // to send to the backend for direct-send messaging.
+      messaging.onRegistered.listen((fid) {
+        if (kDebugMode) {
+          AppLogger.info('FCM Installation ID: $fid');
+        }
+      });
+      await messaging.register();
 
       // Set up message handlers
       _setupMessageHandlers();
